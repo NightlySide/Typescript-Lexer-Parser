@@ -1,11 +1,11 @@
-import { expect, util } from "chai";
+import { expect } from "chai";
 
 import words from "../src/words";
 import { lex, simpleCLexer } from "../src/lexer";
 import { Word } from "../src/types";
 
 describe("Lexer functions", () => {
-	describe("lex", () => {
+	describe("lex()", () => {
 		it("should return no tokens", () => {
 			expect(lex("", words).length).to.be.equal(0);
 		});
@@ -24,7 +24,7 @@ describe("Lexer functions", () => {
 		});
 	});
 
-	describe("simpleCLexer", () => {
+	describe("simpleCLexer()", () => {
 		it("should print tokens", () => {
 			expect(simpleCLexer("void main() {}")).to.be.undefined;
 		});
