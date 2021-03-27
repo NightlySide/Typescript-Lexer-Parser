@@ -39,7 +39,7 @@ jobs:
                   node-version: "12"
             - run: npm install -g yarn
             - run: yarn install
-            - run: yarn build
+            # - run: yarn build
             - uses: paambaati/codeclimate-action@v2.7.5
               env:
                   CC_TEST_REPORTER_ID: 71a21d50468e990cc8b96396e18116ea9f04fd6d47fce10b632f2cdf587cbe71
