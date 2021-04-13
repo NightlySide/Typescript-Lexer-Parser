@@ -1,6 +1,8 @@
+import WordKind from "./kinds";
+
 export class Word {
     /** Word's name used to understand the kind of token used */
-    public name: string;
+    public kind: WordKind;
     /** The word's regular expression to detect the word in the content */
     public regexp: RegExp;
 
@@ -16,8 +18,8 @@ export class Word {
      * let w = new Word("IF", /\bif\b/);
      * ```
      */
-    constructor(name: string, regexp: RegExp) {
-        this.name = name;
+    constructor(kind: WordKind, regexp: RegExp) {
+        this.kind = kind;
         this.regexp = regexp;
     }
 }
@@ -27,6 +29,8 @@ export class Token {
     public word: Word;
     /** Token's value, a string of the content from the source */
     public value: string;
+    /** Token's position, a line number and a col number */
+    public position: Position;
 
     /**
      *
@@ -41,8 +45,35 @@ export class Token {
      * let t = new Token(new Word("IF", /\bif\b/), "if");
      * ```
      */
-    constructor(word: Word, value: string) {
+    constructor(position: Position, word: Word, value: string) {
+        this.position = position;
         this.word = word;
         this.value = value;
+    }
+}
+
+export class Position {
+    /** Line of the object in the code */
+    public line: number;
+    /** Col of the object in the code */
+    public col: number;
+
+    /**
+     *
+     * A position in the code, simple structure to hold
+     * the line and the col at which an object lies.
+     *
+     * @param line - line of the object in the code
+     * @param col - col of the object in the code
+     *
+     * @example
+     * ```typescript
+     * let pos = new Position(2, 1);
+     * console.log(pos.line); // prints 2
+     * ```
+     */
+    constructor(line: number, col: number) {
+        this.line = line;
+        this.col = col;
     }
 }

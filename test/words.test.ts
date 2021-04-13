@@ -1,15 +1,16 @@
 import { expect } from "chai";
+import WordKinds from "../src/kinds";
 
 import words from "../src/words";
 
 describe("Words list", () => {
-    it("should contain 54 words", () => {
-        expect(words.length).to.be.equal(54);
+    it("should contain 28 words", () => {
+        expect(words.length).to.be.equal(28);
     });
 
     it("should have a name and regexp", () => {
         words.map((word) => {
-            expect(word.name).not.to.be.equal("");
+            expect(word.kind).not.to.be.equal(WordKinds.UNDEFINED);
             expect(word.regexp).not.to.be.null;
         });
     });
