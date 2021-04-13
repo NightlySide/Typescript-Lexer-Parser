@@ -198,6 +198,7 @@ function parse_if(parser: Parser): If {
     print(indent, ">>> parse if");
 
     parser.expect(WordKinds.IF);
+    parser.expect(WordKinds.L_PAR);
 
     const condition = parse_expression(parser, WordKinds.R_PAR);
     parser.expect(WordKinds.R_PAR);
