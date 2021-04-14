@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import fs from "fs";
 
-import words from "../src/words";
-import { lex, simpleCLexer } from "../src/lexer";
+import words from "../src/lexer/words";
+import { lex, simpleCLexer } from "../src/lexer/lexer";
 import { Word } from "../src/types";
 import WordKinds from "../src/kinds";
 
@@ -40,7 +40,7 @@ describe("Lexer functions", () => {
         it("should return 50 tokens", () => {
             const src = fs.readFileSync("data/simple_add.c", "utf8");
             const tokens = lex(src, words);
-            expect(tokens.length).to.be.equal(50);
+            expect(tokens.length).to.be.equal(26);
         });
     });
 });

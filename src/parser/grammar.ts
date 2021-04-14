@@ -15,12 +15,14 @@ import {
     While,
 } from "../ast/types";
 
+const DEBUG_PRINT = false;
 function print(indent: number, msg: string) {
-    console.log(
-        Array(indent * 2)
-            .fill(" ")
-            .join("") + msg
-    );
+    if (DEBUG_PRINT)
+        console.log(
+            Array(indent * 2)
+                .fill(" ")
+                .join("") + msg
+        );
 }
 
 function parse_statement(parser: Parser): ASTNode {

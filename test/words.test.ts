@@ -1,11 +1,11 @@
 import { expect } from "chai";
 import WordKinds from "../src/kinds";
 
-import words from "../src/words";
+import words from "../src/lexer/words";
 
 describe("Words list", () => {
     it("should contain 28 words", () => {
-        expect(words.length).to.be.equal(28);
+        expect(words.length).to.be.equal(35);
     });
 
     it("should have a name and regexp", () => {
