@@ -1315,7 +1315,7 @@ class GraphComponent {
     }
     loadingTree() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-            let prgm = yield fetch("/assets/data/simple_add_func.vpy");
+            let prgm = yield fetch("assets/data/simple_add_func.vpy");
             // console.log("Program: ", await prgm.text());
             let tokens = Object(_compiler_lexer_lexer__WEBPACK_IMPORTED_MODULE_3__["lex"])(yield prgm.text(), _compiler_lexer_words__WEBPACK_IMPORTED_MODULE_6__["default"]);
             Object(_compiler_lexer_utils__WEBPACK_IMPORTED_MODULE_4__["printTokens"])(tokens);
