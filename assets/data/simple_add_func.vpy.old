@@ -1,0 +1,66 @@
+====
+    id: 5
+    type: "utils/prgm_init"
+    pos: (20, 100)
+    ----
+    out: "next", program_flow, 0
+    ----
+    conn: 0 ---> 4, 0
+====
+
+====
+    id: 0
+    type: "types/nombre"
+    pos: (20, 200)
+    title: "Premier nombre"
+    value: 5.0
+    ----
+    out: "value", number, 5
+    ----
+    conn: 0 ---> 2, 0
+==== 
+
+====
+    id: 1
+    type: "types/nombre"
+    pos: (20, 350)
+    title: "Deuxième nombre"
+    value: 3.0
+    ----
+    out: "value", number, 3
+    ----
+    conn: 0 ---> 2, 1
+====
+
+====
+    id: 2
+    type: "maths/addition"
+    pos: (280, 275)
+    ----
+    in: "a", number, 0
+    in: "b", number, 0
+    out: "a+b", number, $value
+    ----
+    conn: 0 ---> 3, 0
+====
+
+====
+    id: 3
+    type: "utils/to_string"
+    pos: (450, 280)
+    ----
+    in: "number", number, 0
+    out: "string", string, $value
+    ----
+    conn: 0 ---> 4, 1
+====
+
+====
+    id: 4
+    type: "utils/print"
+    pos: (620, 100)
+    ----
+    in: "prev", program_flow, 0
+    in: "message", string, ""
+    out: "next", program_flow, 0
+====
