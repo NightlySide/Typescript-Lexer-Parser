@@ -31,10 +31,16 @@ class ASTNode {
     add_child(node) {
         this.children.push(node);
     }
+    accept(visitor) {
+        console.error("Visiting basic node!!!");
+    }
 }
 class Root extends ASTNode {
     constructor() {
         super("Root");
+    }
+    accept(visitor) {
+        visitor.visit_root(this);
     }
 }
 class Block extends ASTNode {
@@ -45,11 +51,17 @@ class Block extends ASTNode {
         else
             this.children = [identity, io];
     }
+    accept(visitor) {
+        visitor.visit_block(this);
+    }
 }
 class BlockIdentity extends ASTNode {
     constructor(parameters) {
         super("BlockIdentity");
         this.children = parameters;
+    }
+    accept(visitor) {
+        visitor.visit_block_identity(this);
     }
 }
 class BlockIO extends ASTNode {
@@ -57,11 +69,17 @@ class BlockIO extends ASTNode {
         super("BlockI/O");
         this.children = ins_outs;
     }
+    accept(visitor) {
+        visitor.visit_block_io(this);
+    }
 }
 class BlockLinks extends ASTNode {
     constructor(links) {
         super("BlockLinks");
         this.children = links;
+    }
+    accept(visitor) {
+        visitor.visit_block_links(this);
     }
 }
 class Identifier extends ASTNode {
@@ -69,11 +87,17 @@ class Identifier extends ASTNode {
         super("Identifier");
         this.content = value;
     }
+    accept(visitor) {
+        visitor.visit_identifier(this);
+    }
 }
 class Value extends ASTNode {
     constructor(value) {
         super("Value");
         this.content = value;
+    }
+    accept(visitor) {
+        visitor.visit_value(this);
     }
 }
 class IdentityStatement extends ASTNode {
@@ -81,17 +105,26 @@ class IdentityStatement extends ASTNode {
         super("IdentityStatement");
         this.children = [id, value];
     }
+    accept(visitor) {
+        visitor.visit_identity_statement(this);
+    }
 }
 class IOStatement extends ASTNode {
     constructor(in_or_out, name, type, value) {
         super("IdentityStatement");
         this.children = [in_or_out, name, type, value];
     }
+    accept(visitor) {
+        visitor.visit_io_statement(this);
+    }
 }
 class LinkStatement extends ASTNode {
     constructor(in_id, out_id, block_id) {
         super("LinkStatement");
         this.children = [in_id, out_id, block_id];
+    }
+    accept(visitor) {
+        visitor.visit_link_statement(this);
     }
 }
 
@@ -133,27 +166,6 @@ __webpack_require__.r(__webpack_exports__);
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(/*! /mnt/Data/Document/Projets/NodeJS/BluePrintF/src/main.ts */"zUnb");
-
-
-/***/ }),
-
-/***/ "3Kwp":
-/*!*****************************************!*\
-  !*** ./src/app/graph/blocks_to_desc.ts ***!
-  \*****************************************/
-/*! exports provided: blocks_to_desc */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "blocks_to_desc", function() { return blocks_to_desc; });
-function blocks_to_desc(block) {
-    let res = "";
-    block.forEach((block) => {
-        res += block.export_string();
-    });
-    return res;
-}
 
 
 /***/ }),
@@ -396,7 +408,7 @@ const environment = {
 /*!********************************!*\
   !*** ./src/app/graph/utils.ts ***!
   \********************************/
-/*! exports provided: ast_to_block, block_to_nodes, linking_nodes_on_graph, nodes_to_block */
+/*! exports provided: ast_to_block, block_to_nodes, linking_nodes_on_graph, nodes_to_block, blocks_to_ast */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -405,23 +417,28 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "block_to_nodes", function() { return block_to_nodes; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "linking_nodes_on_graph", function() { return linking_nodes_on_graph; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nodes_to_block", function() { return nodes_to_block; });
-/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types */ "DK5C");
-/* harmony import */ var litegraph_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! litegraph.js */ "bhRC");
-/* harmony import */ var litegraph_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(litegraph_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "blocks_to_ast", function() { return blocks_to_ast; });
+/* harmony import */ var _compiler_ast_ast__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../compiler/ast/ast */ "Vnbs");
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./types */ "DK5C");
+/* harmony import */ var litegraph_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! litegraph.js */ "bhRC");
+/* harmony import */ var litegraph_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(litegraph_js__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../compiler/ast/types */ "/fG4");
+
+
 
 
 function ast_to_block(tree) {
     let blocks = tree
         .get_root()
         .get_children()
-        .map((block_node) => _types__WEBPACK_IMPORTED_MODULE_0__["Block"].from_ast_node(block_node));
+        .map((block_node) => _types__WEBPACK_IMPORTED_MODULE_1__["Block"].from_ast_node(block_node));
     return blocks;
 }
 function block_to_nodes(blocks) {
     let nodes = new Map();
     // creating each node
     blocks.forEach((block) => {
-        const node = litegraph_js__WEBPACK_IMPORTED_MODULE_1__["LiteGraph"].createNode(block.type);
+        const node = litegraph_js__WEBPACK_IMPORTED_MODULE_2__["LiteGraph"].createNode(block.type);
         if (node == null) {
             console.log("Cannot build node with type: ", block.type);
         }
@@ -461,7 +478,7 @@ function nodes_to_block(graph, nodes) {
     let link_ids = new Set();
     // creating the blocks
     nodes.forEach((node) => {
-        let block = new _types__WEBPACK_IMPORTED_MODULE_0__["Block"]();
+        let block = new _types__WEBPACK_IMPORTED_MODULE_1__["Block"]();
         // identity
         block.id = node.id;
         block.pos = node.pos;
@@ -476,11 +493,11 @@ function nodes_to_block(graph, nodes) {
             let type = input.type;
             if (String(type) === "0")
                 type = "anything";
-            block.inputs.push(new _types__WEBPACK_IMPORTED_MODULE_0__["BlockIO"]("in", input.name, type, (_a = input.link) === null || _a === void 0 ? void 0 : _a.toString()));
+            block.inputs.push(new _types__WEBPACK_IMPORTED_MODULE_1__["BlockIO"]("in", input.name, type, (_a = input.link) === null || _a === void 0 ? void 0 : _a.toString()));
         });
         node.outputs.forEach((output) => {
             var _a;
-            block.outputs.push(new _types__WEBPACK_IMPORTED_MODULE_0__["BlockIO"]("out", output.name, output.type, "undefined"));
+            block.outputs.push(new _types__WEBPACK_IMPORTED_MODULE_1__["BlockIO"]("out", output.name, output.type, "undefined"));
             (_a = output.links) === null || _a === void 0 ? void 0 : _a.forEach((link) => link_ids.add(link));
         });
         hashmap.set(block.id, block);
@@ -490,9 +507,43 @@ function nodes_to_block(graph, nodes) {
         let link = graph.links[idx];
         let b_origin = hashmap.get(link.origin_id);
         let b_target = hashmap.get(link.target_id);
-        b_origin.links.push(new _types__WEBPACK_IMPORTED_MODULE_0__["BlockLinks"](link.origin_slot, link.target_slot, b_target.id));
+        b_origin.links.push(new _types__WEBPACK_IMPORTED_MODULE_1__["BlockLinks"](link.origin_slot, link.target_slot, b_target.id));
     });
     return Array.from(hashmap.values());
+}
+function blocks_to_ast(blocks) {
+    let tree = new _compiler_ast_ast__WEBPACK_IMPORTED_MODULE_0__["AST"]();
+    blocks.forEach((block) => {
+        // Identity
+        let id_stmts = [
+            new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["IdentityStatement"](new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Identifier"]("id"), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](block.id)),
+            new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["IdentityStatement"](new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Identifier"]("type"), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](`"${block.type}"`)),
+            new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["IdentityStatement"](new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Identifier"]("pos"), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](block.pos.join(","))),
+        ];
+        if (block.title != "" && block.title != undefined) {
+            id_stmts.push(new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["IdentityStatement"](new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Identifier"]("title"), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](`"${block.title}"`)));
+        }
+        let id_block = new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["BlockIdentity"](id_stmts);
+        // I/O
+        let io_stmts = [];
+        block.inputs.forEach((input) => {
+            io_stmts.push(new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["IOStatement"](new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"]("in"), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](input.name), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](input.io_type), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](input.value)));
+        });
+        block.outputs.forEach((ouput) => {
+            io_stmts.push(new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["IOStatement"](new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"]("out"), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](ouput.name), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](ouput.io_type), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](ouput.value)));
+        });
+        let io_block = new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["BlockIO"](io_stmts);
+        // links
+        let links = [];
+        block.links.forEach((link) => {
+            links.push(new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["LinkStatement"](new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](link.in_id), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](link.out_id), new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Value"](link.block_id)));
+        });
+        let link_block = new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["BlockLinks"](links);
+        tree.get_root()
+            .get_children()
+            .push(new _compiler_ast_types__WEBPACK_IMPORTED_MODULE_3__["Block"](id_block, io_block, link_block));
+    });
+    return tree;
 }
 
 
@@ -659,6 +710,222 @@ class Booleen extends litegraph_js__WEBPACK_IMPORTED_MODULE_0__["LGraphNode"] {
     }
     onGetInputs() {
         return [["toggle", litegraph_js__WEBPACK_IMPORTED_MODULE_0__["LiteGraph"].ACTION]];
+    }
+}
+
+
+/***/ }),
+
+/***/ "EKYI":
+/*!*****************************************!*\
+  !*** ./src/compiler/visitor/visitor.ts ***!
+  \*****************************************/
+/*! exports provided: Visitor */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Visitor", function() { return Visitor; });
+function printIfDebug(debug, message) {
+    if (debug) {
+        console.log(message);
+    }
+}
+class Visitor {
+    constructor(tree) {
+        this.nb_branches = 0;
+        this.blocks = [];
+        this.has_start = false;
+        this.debug = true;
+        this.current_identifier = "";
+        this.tree = tree;
+    }
+    visit_tree() {
+        printIfDebug(this.debug, "---Starting visiting tree");
+        this.tree.get_root().accept(this);
+        printIfDebug(this.debug, "---Ending visiting tree");
+        // checking branches
+        if (this.nb_branches != 0)
+            console.error("There are branches that were not visited.. Nb branches left: ", this.nb_branches);
+        else
+            console.info("All nodes visited successfully!");
+        // adding the last block to the list
+        if (this.current_block != undefined)
+            this.blocks.push(this.current_block);
+        // if there wasn't a start block
+        if (!this.has_start)
+            console.error("This program has no start, it won't compile!");
+    }
+    visit_children(node) {
+        if (node.get_children().length == 0) {
+            this.nb_branches--;
+            return;
+        }
+        node.get_children().forEach((child) => {
+            this.nb_branches++;
+            child.accept(this);
+        });
+        this.nb_branches--;
+    }
+    is_current_block_valid() {
+        if (this.current_block == undefined)
+            throw Error("There is no valid block to enter data into");
+    }
+    visit_root(_node) {
+        printIfDebug(this.debug, "Root");
+    }
+    visit_block(_node) {
+        printIfDebug(this.debug, "----- BLOCK -----");
+    }
+    visit_block_identity(_node) {
+        printIfDebug(this.debug, "--IDENTITY");
+    }
+    visit_block_io(_node) {
+        printIfDebug(this.debug, "--IO");
+    }
+    visit_block_links(_node) {
+        printIfDebug(this.debug, "--LINKS");
+    }
+    visit_identifier(node) {
+        this.current_identifier = node.content;
+        this.visit_children(node);
+    }
+    visit_value(node) {
+        this.current_value = node.content;
+        this.visit_children(node);
+    }
+    visit_identity_statement(_node) {
+        printIfDebug(this.debug, `${this.current_identifier}: ${this.current_value}`);
+    }
+    visit_io_statement(_node) { }
+    visit_link_statement(_node) { }
+}
+
+
+/***/ }),
+
+/***/ "Fr2j":
+/*!************************************************!*\
+  !*** ./src/compiler/visitor/pretty_printer.ts ***!
+  \************************************************/
+/*! exports provided: PrettyPrinter */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PrettyPrinter", function() { return PrettyPrinter; });
+/* harmony import */ var _app_graph_types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../app/graph/types */ "DK5C");
+/* harmony import */ var _visitor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./visitor */ "EKYI");
+
+
+class PrettyPrinter extends _visitor__WEBPACK_IMPORTED_MODULE_1__["Visitor"] {
+    constructor(tree) {
+        super(tree);
+        this.code = "";
+    }
+    pretty_print() {
+        this.visit_tree();
+        console.log(this.tree);
+        return this.code;
+    }
+    visit_root(node) {
+        this.visit_children(node);
+    }
+    visit_block(node) {
+        this.code += "====\n";
+        if (this.current_block != undefined)
+            this.blocks.push(this.current_block);
+        this.current_block = new _app_graph_types__WEBPACK_IMPORTED_MODULE_0__["Block"]();
+        super.visit_block(node);
+        this.visit_children(node);
+        this.code += "====\n";
+    }
+    visit_block_identity(node) {
+        super.visit_block_identity(node);
+        this.visit_children(node);
+    }
+    visit_block_io(node) {
+        this.code += "  ----\n";
+        super.visit_block_io(node);
+        this.visit_children(node);
+    }
+    visit_block_links(node) {
+        super.visit_block_links(node);
+        this.visit_children(node);
+    }
+    visit_identity_statement(node) {
+        this.visit_children(node);
+        this.is_current_block_valid();
+        switch (this.current_identifier) {
+            case "id":
+                this.current_block.id = parseInt(this.current_value);
+                break;
+            case "type":
+                this.current_block.type = this.current_value.slice(1, -1);
+                if (this.current_block.type == "utils/prgm_init") {
+                    if (this.has_start)
+                        throw Error("Double init blocks! Aborting");
+                    this.has_start = true;
+                }
+                break;
+            case "title":
+                this.current_block.title = this.current_value.slice(1, -1);
+                break;
+            case "pos":
+                const data = this.current_value.split(",");
+                this.current_block.pos = [
+                    parseInt(data[0]),
+                    parseInt(data[1]),
+                ];
+                this.current_value = `(${this.current_block.pos})`;
+                break;
+            case "value":
+                this.current_block.value = this.current_value;
+                break;
+            default:
+                throw Error(`Couldn't understand identifier: ${this.current_identifier}, with value: ${this.current_value}`);
+        }
+        this.code += `  ${this.current_identifier}: ${this.current_value}\n`;
+        super.visit_identity_statement(node);
+    }
+    visit_io_statement(node) {
+        this.nb_branches += 4;
+        // in/out
+        node.get_children()[0].accept(this);
+        const in_out = this.current_value;
+        // name
+        node.get_children()[1].accept(this);
+        const name = this.current_value;
+        // io type
+        node.get_children()[2].accept(this);
+        const io_type = this.current_value;
+        // value
+        node.get_children()[3].accept(this);
+        const value = this.current_value;
+        this.is_current_block_valid();
+        this.code += `  ${in_out}: "${name}", ${io_type}, ${value}\n`;
+        const block_io = new _app_graph_types__WEBPACK_IMPORTED_MODULE_0__["BlockIO"](in_out, name, io_type, value);
+        if (in_out == "in")
+            this.current_block.inputs.push(block_io);
+        else
+            this.current_block.outputs.push(block_io);
+    }
+    visit_link_statement(node) {
+        this.nb_branches += 3;
+        // out_id
+        node.get_children()[0].accept(this);
+        const out_id = parseInt(this.current_value);
+        // in_id
+        node.get_children()[1].accept(this);
+        const in_id = parseInt(this.current_value);
+        // block id
+        node.get_children()[2].accept(this);
+        const block_id = parseInt(this.current_value);
+        this.is_current_block_valid();
+        if (this.current_block.links.length == 0)
+            this.code += "  ----\n";
+        this.code += `  conn: ${in_id} ---> ${block_id}, ${out_id}\n`;
+        this.current_block.links.push(new _app_graph_types__WEBPACK_IMPORTED_MODULE_0__["BlockLinks"](out_id, in_id, block_id));
     }
 }
 
@@ -941,11 +1208,11 @@ class ProgramStart extends litegraph_js__WEBPACK_IMPORTED_MODULE_0__["LGraphNode
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AppComponent", function() { return AppComponent; });
-/* harmony import */ var _graph_blocks_to_desc__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./graph/blocks_to_desc */ "3Kwp");
-/* harmony import */ var _graph_graph_component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./graph/graph.component */ "k/13");
-/* harmony import */ var _graph_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./graph/utils */ "CHa0");
-/* harmony import */ var _compiler_generator_generator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../compiler/generator/generator */ "8Eix");
-/* harmony import */ var _upload_modal_upload_component__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./upload_modal/upload.component */ "Ja+F");
+/* harmony import */ var _graph_graph_component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./graph/graph.component */ "k/13");
+/* harmony import */ var _graph_utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./graph/utils */ "CHa0");
+/* harmony import */ var _compiler_generator_generator__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../compiler/generator/generator */ "8Eix");
+/* harmony import */ var _upload_modal_upload_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./upload_modal/upload.component */ "Ja+F");
+/* harmony import */ var src_compiler_visitor_pretty_printer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! src/compiler/visitor/pretty_printer */ "Fr2j");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _angular_material_dialog__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @angular/material/dialog */ "0IaG");
 /* harmony import */ var _angular_material_toolbar__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @angular/material/toolbar */ "/t3+");
@@ -982,8 +1249,10 @@ class AppComponent {
     saveGraph() {
         console.log("Saving");
         if (this.node_graph != undefined) {
-            let new_blocks = Object(_graph_utils__WEBPACK_IMPORTED_MODULE_2__["nodes_to_block"])(this.node_graph.graph, this.node_graph.graph.serialize().nodes);
-            this.code_content = Object(_graph_blocks_to_desc__WEBPACK_IMPORTED_MODULE_0__["blocks_to_desc"])(new_blocks);
+            let new_blocks = Object(_graph_utils__WEBPACK_IMPORTED_MODULE_1__["nodes_to_block"])(this.node_graph.graph, this.node_graph.graph.serialize().nodes);
+            this.node_graph.ast = Object(_graph_utils__WEBPACK_IMPORTED_MODULE_1__["blocks_to_ast"])(new_blocks);
+            let pretty_printer = new src_compiler_visitor_pretty_printer__WEBPACK_IMPORTED_MODULE_4__["PrettyPrinter"](this.node_graph.ast);
+            this.code_content = pretty_printer.pretty_print();
             this.downloadFile(this.code_content, "MyAwesomeProgram.vpy");
         }
         else {
@@ -994,7 +1263,10 @@ class AppComponent {
         console.log("Turning the nodes into a beautiful tree");
         this.node_graph.update_nodes();
         console.log("Generating code...");
-        this.code_content = Object(_compiler_generator_generator__WEBPACK_IMPORTED_MODULE_3__["ASTToPythonCode"])(this.node_graph.ast);
+        this.code_content = Object(_compiler_generator_generator__WEBPACK_IMPORTED_MODULE_2__["ASTToPythonCode"])(this.node_graph.ast);
+        console.log("Visiting tree..");
+        let printer = new src_compiler_visitor_pretty_printer__WEBPACK_IMPORTED_MODULE_4__["PrettyPrinter"](this.node_graph.ast);
+        console.log(printer.pretty_print());
     }
     sendFile(target) {
         const files = target.files;
@@ -1002,7 +1274,7 @@ class AppComponent {
     }
     uploadFile() {
         console.log("Uploading data");
-        let upload_dialog = this.dialog.open(_upload_modal_upload_component__WEBPACK_IMPORTED_MODULE_4__["UploadDialogComponent"], {
+        let upload_dialog = this.dialog.open(_upload_modal_upload_component__WEBPACK_IMPORTED_MODULE_3__["UploadDialogComponent"], {
             maxWidth: "90vw",
             minWidth: "60vw",
         });
@@ -1022,7 +1294,7 @@ class AppComponent {
 }
 AppComponent.ɵfac = function AppComponent_Factory(t) { return new (t || AppComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_5__["ɵɵdirectiveInject"](_angular_material_dialog__WEBPACK_IMPORTED_MODULE_6__["MatDialog"])); };
 AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_5__["ɵɵdefineComponent"]({ type: AppComponent, selectors: [["app-root"]], viewQuery: function AppComponent_Query(rf, ctx) { if (rf & 1) {
-        _angular_core__WEBPACK_IMPORTED_MODULE_5__["ɵɵviewQuery"](_graph_graph_component__WEBPACK_IMPORTED_MODULE_1__["GraphComponent"], 1);
+        _angular_core__WEBPACK_IMPORTED_MODULE_5__["ɵɵviewQuery"](_graph_graph_component__WEBPACK_IMPORTED_MODULE_0__["GraphComponent"], 1);
     } if (rf & 2) {
         let _t;
         _angular_core__WEBPACK_IMPORTED_MODULE_5__["ɵɵqueryRefresh"](_t = _angular_core__WEBPACK_IMPORTED_MODULE_5__["ɵɵloadQuery"]()) && (ctx.node_graph = _t.first);
@@ -1067,7 +1339,7 @@ AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_5__["ɵɵdefineCompo
     } if (rf & 2) {
         _angular_core__WEBPACK_IMPORTED_MODULE_5__["ɵɵadvance"](19);
         _angular_core__WEBPACK_IMPORTED_MODULE_5__["ɵɵtextInterpolate"](ctx.code_content);
-    } }, directives: [_angular_material_toolbar__WEBPACK_IMPORTED_MODULE_7__["MatToolbar"], _angular_material_button__WEBPACK_IMPORTED_MODULE_8__["MatButton"], _angular_material_icon__WEBPACK_IMPORTED_MODULE_9__["MatIcon"], _graph_graph_component__WEBPACK_IMPORTED_MODULE_1__["GraphComponent"]], styles: ["[_nghost-%COMP%] {\n    height: 100%;\n    display: flex;\n    flex-direction: column;\n}\n\n.example-spacer[_ngcontent-%COMP%] {\n    flex: 1 1 auto;\n}\n\n.main-container[_ngcontent-%COMP%] {\n    display: flex;\n    width: 100%;\n    height: calc(100% - 64px);\n}\n\n.left-container[_ngcontent-%COMP%] {\n    flex: 0 1 65%;\n    max-width: 65%;\n    overflow: hidden;\n}\n\n.right-container[_ngcontent-%COMP%] {\n    flex: 0 1 35%;\n    display: flex;\n    max-width: 35%;\n    flex-wrap: wrap;\n    align-items: flex-start;\n    border: 1px solid black;\n    overflow-y: auto;\n    padding-left: 1em;\n}\n\n.left-container[_ngcontent-%COMP%]   canvas[_ngcontent-%COMP%] {\n    width: 100%;\n    height: 100%;\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImFwcC5jb21wb25lbnQuY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBO0lBQ0ksWUFBWTtJQUNaLGFBQWE7SUFDYixzQkFBc0I7QUFDMUI7O0FBRUE7SUFDSSxjQUFjO0FBQ2xCOztBQUVBO0lBQ0ksYUFBYTtJQUNiLFdBQVc7SUFDWCx5QkFBeUI7QUFDN0I7O0FBRUE7SUFDSSxhQUFhO0lBQ2IsY0FBYztJQUNkLGdCQUFnQjtBQUNwQjs7QUFFQTtJQUNJLGFBQWE7SUFDYixhQUFhO0lBQ2IsY0FBYztJQUNkLGVBQWU7SUFDZix1QkFBdUI7SUFDdkIsdUJBQXVCO0lBQ3ZCLGdCQUFnQjtJQUNoQixpQkFBaUI7QUFDckI7O0FBRUE7SUFDSSxXQUFXO0lBQ1gsWUFBWTtBQUNoQiIsImZpbGUiOiJhcHAuY29tcG9uZW50LmNzcyIsInNvdXJjZXNDb250ZW50IjpbIjpob3N0IHtcbiAgICBoZWlnaHQ6IDEwMCU7XG4gICAgZGlzcGxheTogZmxleDtcbiAgICBmbGV4LWRpcmVjdGlvbjogY29sdW1uO1xufVxuXG4uZXhhbXBsZS1zcGFjZXIge1xuICAgIGZsZXg6IDEgMSBhdXRvO1xufVxuXG4ubWFpbi1jb250YWluZXIge1xuICAgIGRpc3BsYXk6IGZsZXg7XG4gICAgd2lkdGg6IDEwMCU7XG4gICAgaGVpZ2h0OiBjYWxjKDEwMCUgLSA2NHB4KTtcbn1cblxuLmxlZnQtY29udGFpbmVyIHtcbiAgICBmbGV4OiAwIDEgNjUlO1xuICAgIG1heC13aWR0aDogNjUlO1xuICAgIG92ZXJmbG93OiBoaWRkZW47XG59XG5cbi5yaWdodC1jb250YWluZXIge1xuICAgIGZsZXg6IDAgMSAzNSU7XG4gICAgZGlzcGxheTogZmxleDtcbiAgICBtYXgtd2lkdGg6IDM1JTtcbiAgICBmbGV4LXdyYXA6IHdyYXA7XG4gICAgYWxpZ24taXRlbXM6IGZsZXgtc3RhcnQ7XG4gICAgYm9yZGVyOiAxcHggc29saWQgYmxhY2s7XG4gICAgb3ZlcmZsb3cteTogYXV0bztcbiAgICBwYWRkaW5nLWxlZnQ6IDFlbTtcbn1cblxuLmxlZnQtY29udGFpbmVyIGNhbnZhcyB7XG4gICAgd2lkdGg6IDEwMCU7XG4gICAgaGVpZ2h0OiAxMDAlO1xufVxuIl19 */"] });
+    } }, directives: [_angular_material_toolbar__WEBPACK_IMPORTED_MODULE_7__["MatToolbar"], _angular_material_button__WEBPACK_IMPORTED_MODULE_8__["MatButton"], _angular_material_icon__WEBPACK_IMPORTED_MODULE_9__["MatIcon"], _graph_graph_component__WEBPACK_IMPORTED_MODULE_0__["GraphComponent"]], styles: ["[_nghost-%COMP%] {\n    height: 100%;\n    display: flex;\n    flex-direction: column;\n}\n\n.example-spacer[_ngcontent-%COMP%] {\n    flex: 1 1 auto;\n}\n\n.main-container[_ngcontent-%COMP%] {\n    display: flex;\n    width: 100%;\n    height: calc(100% - 64px);\n}\n\n.left-container[_ngcontent-%COMP%] {\n    flex: 0 1 65%;\n    max-width: 65%;\n    overflow: hidden;\n}\n\n.right-container[_ngcontent-%COMP%] {\n    flex: 0 1 35%;\n    display: flex;\n    max-width: 35%;\n    flex-wrap: wrap;\n    align-items: flex-start;\n    border: 1px solid black;\n    overflow-y: auto;\n    padding-left: 1em;\n}\n\n.left-container[_ngcontent-%COMP%]   canvas[_ngcontent-%COMP%] {\n    width: 100%;\n    height: 100%;\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImFwcC5jb21wb25lbnQuY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBO0lBQ0ksWUFBWTtJQUNaLGFBQWE7SUFDYixzQkFBc0I7QUFDMUI7O0FBRUE7SUFDSSxjQUFjO0FBQ2xCOztBQUVBO0lBQ0ksYUFBYTtJQUNiLFdBQVc7SUFDWCx5QkFBeUI7QUFDN0I7O0FBRUE7SUFDSSxhQUFhO0lBQ2IsY0FBYztJQUNkLGdCQUFnQjtBQUNwQjs7QUFFQTtJQUNJLGFBQWE7SUFDYixhQUFhO0lBQ2IsY0FBYztJQUNkLGVBQWU7SUFDZix1QkFBdUI7SUFDdkIsdUJBQXVCO0lBQ3ZCLGdCQUFnQjtJQUNoQixpQkFBaUI7QUFDckI7O0FBRUE7SUFDSSxXQUFXO0lBQ1gsWUFBWTtBQUNoQiIsImZpbGUiOiJhcHAuY29tcG9uZW50LmNzcyIsInNvdXJjZXNDb250ZW50IjpbIjpob3N0IHtcbiAgICBoZWlnaHQ6IDEwMCU7XG4gICAgZGlzcGxheTogZmxleDtcbiAgICBmbGV4LWRpcmVjdGlvbjogY29sdW1uO1xufVxuXG4uZXhhbXBsZS1zcGFjZXIge1xuICAgIGZsZXg6IDEgMSBhdXRvO1xufVxuXG4ubWFpbi1jb250YWluZXIge1xuICAgIGRpc3BsYXk6IGZsZXg7XG4gICAgd2lkdGg6IDEwMCU7XG4gICAgaGVpZ2h0OiBjYWxjKDEwMCUgLSA2NHB4KTtcbn1cblxuLmxlZnQtY29udGFpbmVyIHtcbiAgICBmbGV4OiAwIDEgNjUlO1xuICAgIG1heC13aWR0aDogNjUlO1xuICAgIG92ZXJmbG93OiBoaWRkZW47XG59XG5cbi5yaWdodC1jb250YWluZXIge1xuICAgIGZsZXg6IDAgMSAzNSU7XG4gICAgZGlzcGxheTogZmxleDtcbiAgICBtYXgtd2lkdGg6IDM1JTtcbiAgICBmbGV4LXdyYXA6IHdyYXA7XG4gICAgYWxpZ24taXRlbXM6IGZsZXgtc3RhcnQ7XG4gICAgYm9yZGVyOiAxcHggc29saWQgYmxhY2s7XG4gICAgb3ZlcmZsb3cteTogYXV0bztcbiAgICBwYWRkaW5nLWxlZnQ6IDFlbTtcbn1cblxuLmxlZnQtY29udGFpbmVyIGNhbnZhcyB7XG4gICAgd2lkdGg6IDEwMCU7XG4gICAgaGVpZ2h0OiAxMDAlO1xufVxuIl19 */"] });
 
 
 /***/ }),
@@ -1435,9 +1707,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _compiler_lexer_words__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../compiler/lexer/words */ "85Sp");
 /* harmony import */ var src_compiler_ast_ast__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! src/compiler/ast/ast */ "Vnbs");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./utils */ "CHa0");
-/* harmony import */ var _blocks_to_desc__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./blocks_to_desc */ "3Kwp");
-/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @angular/core */ "fXoL");
-
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @angular/core */ "fXoL");
 
 
 
@@ -1507,14 +1777,14 @@ class GraphComponent {
     update_nodes() {
         this.nodes = this.graph.serialize().nodes;
         let blocks = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["nodes_to_block"])(this.graph, this.nodes);
-        this.parseProgram(Object(_blocks_to_desc__WEBPACK_IMPORTED_MODULE_9__["blocks_to_desc"])(blocks));
+        this.ast = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["blocks_to_ast"])(blocks);
     }
 }
 GraphComponent.ɵfac = function GraphComponent_Factory(t) { return new (t || GraphComponent)(); };
-GraphComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵdefineComponent"]({ type: GraphComponent, selectors: [["node-graph"]], hostBindings: function GraphComponent_HostBindings(rf, ctx) { if (rf & 1) {
-        _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵlistener"]("resize", function GraphComponent_resize_HostBindingHandler($event) { return ctx.onResize($event); }, false, _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵresolveWindow"]);
+GraphComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_9__["ɵɵdefineComponent"]({ type: GraphComponent, selectors: [["node-graph"]], hostBindings: function GraphComponent_HostBindings(rf, ctx) { if (rf & 1) {
+        _angular_core__WEBPACK_IMPORTED_MODULE_9__["ɵɵlistener"]("resize", function GraphComponent_resize_HostBindingHandler($event) { return ctx.onResize($event); }, false, _angular_core__WEBPACK_IMPORTED_MODULE_9__["ɵɵresolveWindow"]);
     } }, decls: 1, vars: 0, consts: [["id", "graph-canvas", "width", "1024", "height", "720", 2, "border", "1px solid"]], template: function GraphComponent_Template(rf, ctx) { if (rf & 1) {
-        _angular_core__WEBPACK_IMPORTED_MODULE_10__["ɵɵelement"](0, "canvas", 0);
+        _angular_core__WEBPACK_IMPORTED_MODULE_9__["ɵɵelement"](0, "canvas", 0);
     } }, styles: ["[_nghost-%COMP%] {\n    height: 100%;\n    width: 100%;\n    display: block;\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImdyYXBoLmNvbXBvbmVudC5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUE7SUFDSSxZQUFZO0lBQ1osV0FBVztJQUNYLGNBQWM7QUFDbEIiLCJmaWxlIjoiZ3JhcGguY29tcG9uZW50LmNzcyIsInNvdXJjZXNDb250ZW50IjpbIjpob3N0IHtcbiAgICBoZWlnaHQ6IDEwMCU7XG4gICAgd2lkdGg6IDEwMCU7XG4gICAgZGlzcGxheTogYmxvY2s7XG59XG4iXX0= */"] });
 
 
