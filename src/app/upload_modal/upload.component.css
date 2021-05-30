@@ -1,0 +1,7 @@
+.form_field {
+    width: 100%;
+}
+
+mat-dialog-actions {
+    float: right;
+}
