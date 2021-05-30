@@ -1,0 +1,18 @@
+<form [formGroup]="form" (ngSubmit)="submit(form)">
+    <h1 mat-dialog-title>Upload diagram contents</h1>
+    <mat-dialog-content>
+        <mat-form-field class="form_field">
+            <textarea
+                rows="10"
+                class="program_input"
+                matInput
+                formControlName="program"
+                placeholder="Enter program content"
+            ></textarea>
+        </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions>
+        <button mat-button>Upload</button>
+        <button mat-button mat-dialog-close>Cancel</button>
+    </mat-dialog-actions>
+</form>
